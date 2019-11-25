@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
+##Python是一种相当高级的语言
+
+##网络应用，包括网站、后台服务等等
+#缺点就是运行速度慢，和C程序相比非常慢，因为Python是解释型语言
+#跨平台的
+#官方版本的解释器：CPython
+
+
+name = input('please enter your name: ')
+
 import math
 
 def my_abs(x):
@@ -93,7 +104,9 @@ def log2(test='call'):
 def now2():
     print('2019-11-25')
 
-#偏函数
+
+
+##偏函数
 import functools
 
 int('12345')#base=10
