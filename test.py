@@ -12,7 +12,9 @@
 #官方版本的解释器：CPython
 
 
-name = input('please enter your name: ')
+age = input('please enter your name: ')
+age 是 str
+int(age) 转换 int
 
 # 转义\" \' \n \t \\
 #用r''表示''内部的字符串默认不转义
@@ -116,9 +118,142 @@ print('%2d-%02d' % (3, 1))
 
 ##list
 
-list是一种有序的集合s = []
-len(s)
+list是一种可变有序的集合s = []
+len(s)，s[2],获取最后一个s[-1],倒数第二s[-2]
+s.append('Adam')末尾追加
+s.insert(1, 'Jack')插入
+s.pop()删除末尾
+s.pop(i)删除指定位置
+s[1] = 'Sarah'替换元素
+list里面的元素的数据类型可以不同，元素可以是另一个list(二维)
+s = ['python', 'java', ['asp', 'php'], 'scheme']
+L = []
+len(L) == 0
 
+s.sort()排序
+
+##tuple
+元组：tuple。list非常类似，但是tuple一旦初始化就不能修改
+t = ('Michael', 'Bob', 'Tracy')
+定义一个tuple时，在定义的时候，tuple的元素就必须被确定下来
+t = ()空tuple
+t = (1,)一个元素
+
+可变tuple
+t = ('a', 'b', ['A', 'B'])
+t[2][0] = 'X'
+t[2][1] = 'Y'
+t
+('a', 'b', ['X', 'Y'])
+
+指向不变
+tuple所谓的“不变”是说，tuple的每个元素，指向永远不变。即指向'a'，就不能改成指向'b'，
+指向一个list，就不能改成指向其他对象，但指向的这个list本身是可变的！
+二维数组最后一个L[-1][-1]
+
+if age >= 18:
+    print('adult')
+elif age >= 6:
+    print('teenager')
+else:
+    print('your age is', age)
+
+if x:
+    print('True')
+x是非零数值、非空字符串、非空list等，就判断为True，否则为False
+
+##循环
+
+一种是for...in循环，依次把list或tuple中的每个元素迭代出来
+for name in names:
+    print(name)
+
+range(5)生成的序列是从0开始小于5的整数
+通过list()函数可以转换为list
+list(range(5)) == [0, 1, 2, 3, 4]
+
+另一种：while n > 0:
+
+
+##dict & set
+
+dict全称dictionary，在其他语言中也称为map，使用键-值（key-value）存储，具有极快的查找速度
+ d = {'Michael': 95, 'Bob': 75, 'Tracy': 85}
+ d['Michael']
+
+ 在list中查找元素的方法，list越大，查找越慢
+ dict查找速度都非常快，不会随着字典大小的增加而变慢
+ 缺点：需要占用大量的内存，内存浪费多。dict是用空间来换取时间的一种方法
+
+d['Adam'] = 67放入
+
+ 'Thomas' in d 判断key是否存在
+
+ d.get('Thomas') key存在返回None
+ d.get('Thomas', -1)
+d.pop('Bob')删除键值对
+
+
+dict的key必须是不可变对象
+
+通过key计算位置的算法称为哈希算法（Hash）
+
+set和dict类似，也是一组key的集合，但不存储value。在set中，无重复的key。无序
+
+要创建一个set，需要提供一个list作为输入集合
+s = set([1, 2, 3])
+add(key)添加
+remove(key)删除
+&|并集交集操作
+
+同样不可以放入可变对象
+
+str是不变对象，而list是可变对象
+a = 'abc'
+a.replace('a', 'A')
+'Abc'
+a
+'abc'
+
+对于不变对象来说，调用对象自身的任意方法，也不会改变该对象自身的内容。相反，这些方法会创建新的对象并返回
+
+最常用的key是字符串
+
+
+##函数
+
+help(abs)查看abs函数的帮助信息
+abs(-100)
+max()可以接收任意多个参数，并返回最大的那个
+
+float('12.34') str(1.23) bool('')
+
+a = abs #别名
+a(-1) # 所以也可以通过a调用abs函数
+
+hex()函数把一个整数转换成十六进制表示的字符串
+
+定义函数
+def my_abs(x):
+    if x >= 0:
+        return x
+    else:
+        return -x
+
+如果没有return语句，函数执行完毕后也会返回结果，只是结果为None。return None可以简写为return
+
+from abstest import my_abs来导入my_abs()
+
+空函数
+def nop():
+    pass
+
+if age >= 18:
+    pass    
+
+
+ if not isinstance(x, (int, float)):
+        raise TypeError('bad operand type')
 
 
 import math
