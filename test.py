@@ -208,7 +208,7 @@ remove(key)删除
 
 同样不可以放入可变对象
 
-str是不变对象，而list是可变对象
+str,None是不变对象，而list是可变对象
 a = 'abc'
 a.replace('a', 'A')
 'Abc'
@@ -252,10 +252,6 @@ if age >= 18:
     pass    
 
 
- if not isinstance(x, (int, float)):
-        raise TypeError('bad operand type')
-
-
 import math
 
 def my_abs(x):
@@ -271,11 +267,221 @@ def move(x,y,step,angle=0):
 	ny = y - step * math.sin(angle)
 	return nx,ny
 
+返回值是一个tuple()
+返回多值其实就是返回一个tuple，而多个参数可以同时接收一个tuple
+
+
 
 def quadratic(a,b,c):
-	 n1 = (-b + math.sqrt(b * b - 4 * a * c)) / 2 * a
-	 n2 = (-b - math.sqrt(b * b - 4 * a * c)) / 2 * a
-	 return n1,n2
+    i=b**2-4*a*c
+    if i>0:
+        x1=(-b+math.sqrt(i))/(2*a)
+        x2=(-b-math.sqrt(i))/(2*a)
+        print('方程有两个不同的解:' , x1,x2)
+        # return x1,x2     
+    elif i==0:
+        x1=-b/2*a
+        print('方程有两个相同的解:', x1,x1)        
+    else:
+        print('方程无解')
+
+
+位置参数
+必选参数在前，默认参数在后
+
+默认参数必须指向不变对象
+
+可变参，任意多个参数包括0个
+参数前面加了一个*号
+nums = [1, 2, 3]
+calc(*nums)
+*nums表示把nums这个list的所有元素作为可变参数传进去
+可变参数在函数调用时自动组装为一个tuple
+
+**kw
+关键字参数允许你传入0个或任意个含参数名的参数
+这些关键字参数在函数内部自动组装为一个dict
+person('Bob', 35, city='Beijing')
+name: Bob age: 35 other: {'city': 'Beijing'}
+
+extra = {'city': 'Beijing', 'job': 'Engineer'}
+person('Jack', 24, **extra)
+
+
+**extra表示把extra这个dict的所有key-value用关键字参数传入到函数的**kw参数
+kw获得的dict是extra的一份拷贝
+
+命名关键字参数
+def person(name, age, *, city, job):
+    print(name, age, city, job)
+
+命名关键字参数需要一个特殊分隔符*，*后面的参数被视为命名关键字参数    
+
+
+如果函数定义中已经有了一个可变参数，后面跟着的命名关键字参数就不再需要一个特殊分隔符*了：
+def person(name, age, *args, city, job):
+    print(name, age, args, city, job)
+
+
+命名关键字参数可以有缺省值，从而简化调用：
+
+def person(name, age, *, city='Beijing', job):
+    print(name, age, city, job)
+
+person('Jack', 24, job='Engineer')
+
+
+参数定义的顺序必须是：必选参数、默认参数、可变参数、命名关键字参数和关键字参数。
+
+
+对于任意函数，都可以通过类似func(*args, **kw)的形式调用它，无论它的参数是如何定义的
+
+
+总结：
+*args是可变参数，args接收的是一个tuple；
+
+**kw是关键字参数，kw接收的是一个dict。
+
+
+可变参数既可以直接传入：func(1, 2, 3)，又可以先组装list或tuple，再通过*args传入：func(*(1, 2, 3))；
+
+关键字参数既可以直接传入：func(a=1, b=2)，又可以先组装dict，再通过**kw传入：func(**{'a': 1, 'b': 2})。
+
+
+命名的关键字参数是为了限制调用者可以传入的参数名，同时可以提供默认值。
+
+定义命名的关键字参数在没有可变参数的情况下不要忘了写分隔符*，否则定义的将是位置参数
+
+def product(*args):
+
+    if args:
+
+        acl = 1
+
+        for i in args:
+
+            acl *= i
+
+        return acl
+
+    else:
+
+        raise TypeError('none types')
+
+
+
+##递归
+
+阶乘
+def fact(n):
+    if n==1:
+        return 1
+    return n * fact(n - 1)
+
+
+函数调用是通过栈这种数据结构实现的，每当进入一个函数调用，栈就会加一层栈帧，每当函数返回，
+栈就会减一层栈帧。由于栈的大小不是无限的，所以，递归调用的次数过多，会导致栈溢出   
+
+尾递归是指，在函数返回的时候，调用自身本身
+尾递归和循环的效果是一样的，所以，把循环看成是一种特殊的尾递归函数也是可以的 
+
+尾递归调用时，如果做了优化，栈不会增长
+
+
+汉诺塔的移动可以用递归函数非常简单地实现
+
+move(n, a, b, c)函数，它接收参数n，表示3个柱子A、B、C中第1个柱子A的盘子数量，然后打印出把所有盘子从A借助B移动到C的方法
+
+def hanoi(n, a, b, c):
+    # 当n为1时 (递归基础)
+    if n == 1:
+        print(a, '-->', c) # 将A柱最底层的圆盘移动到C柱
+    # 当n大于1时
+    else:
+        hanoi(n-1, a, c, b) # 借助C柱，将n-1个圆盘从A柱移动到B柱
+        print(a, '-->', c) # 将A柱最底层的圆盘移动到C柱
+        hanoi(n-1, b, a, c) # 借助A柱，将n-1个圆盘从B柱移动到C柱
+        
+
+##Slice
+
+取一个list或tuple的部分元素
+L[0:3]取 0，1，2
+
+如果第一个索引是0
+L[:3]前三个
+
+L[-2:]后两个
+
+前10个数，每两个取一个：
+L[:10:2]
+
+所有数，每5个取一个：
+L[::5]
+
+'ABCDEFG'[:3]
+
+str.strip() 去首尾空格
+
+#循环去str首尾空格
+while s[:1] == ' ':
+        s = s[1:]
+    while s[-1:] == ' ':
+        s = s[:-1]
+    return s
+
+
+##迭代
+
+for循环不仅可以用在list或tuple上，还可以作用在其他可迭代对象上
+
+d = {'a': 1, 'b': 2, 'c': 3}
+for key in d:
+    print(key)
+迭代value ,entity
+for value in d.values()    
+for k, v in d.items()
+
+from collections import Iterable
+isinstance('abc', Iterable) # str是否可迭代
+
+同时迭代索引和元素本身
+for i, value in enumerate(['A', 'B', 'C']):
+    print(i, value)
+
+for x, y in [(1, 1), (2, 4), (3, 9)]:
+    print(x, y)
+
+#迭代最大值最小值
+def min_max(d):
+    min1 = d[0]
+    max1 = d[0]
+    for i in d:
+        if i <= min1:
+            min1 = i
+        if i >= max1:
+            max1 = i
+    return (min1, max1)
+
+
+##列表生成式
+[x * x for x in range(1, 11)]
+[x * x for x in range(1, 11) if x % 2 == 0]
+[m + n for m in 'ABC' for n in 'XYZ']
+
+ import os 
+ [d for d in os.listdir('.')] # os.listdir可以列出文件和目录
+
+
+[k + '=' + v for k, v in d.items()]
+
+
+L = ['Hello', 'World', 18, 'Apple', None]
+L2 = [s.lower() for s in L1 if isinstance(s, str) == True]
+
+
+##生成器
+
 
 #利用闭包返回一个计数器函数，每次调用它返回递增整数：
 def createCounter():
