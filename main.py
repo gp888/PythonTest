@@ -482,6 +482,192 @@ L2 = [s.lower() for s in L1 if isinstance(s, str) == True]
 
 ##生成器
 
+第一种方法很简单，把一个列表生成式的[]改成()
+g = (x * x for x in range(10))
+next(g)获得generator的下一个返回值
+
+迭代generator
+for n in g:
+	print(n)
+
+赋值
+a, b = b, a + b
+
+#斐波那契 generator
+第二种：一个函数定义中包含yield关键字，那么这个函数就不再是一个普通函数，而是一个generator
+def fib(max):
+    n, a, b = 0, 0, 1
+    while n < max:
+        yield b
+        a, b = b, a + b
+        n = n + 1
+    return 'done'
+
+
+generator的函数，在每次调用next()的时候执行，遇到yield语句返回，
+再次执行时从上次返回的yield语句处继续执行
+
+迭代generator 函数
+for n in fib(6):
+	print(n)
+
+#杨辉三角
+def triangles():
+    L = [1]
+    while 1:
+        yield L
+        L = [0] + L + [0]
+        L = [L[i] + L[i + 1] for i in range(len(L) - 1)]
+
+
+##迭代器
+
+可以直接作用于for循环的数据类型：
+一类是集合数据类型，如list、tuple、dict、set、str
+一类是generator，包括生成器和带yield的generator function
+
+统称可迭代对象：Iterable
+
+from collections import Iterable
+是否是可迭代对象
+isinstance((x for x in range(10)), Iterable)
+
+
+生成器不但可以作用于for循环，还可以被next()函数不断调用
+可以被next()函数调用并不断返回下一个值的对象称为迭代器：Iterator
+
+from collections import Iterator
+
+生成器都是Iterator对象，但list、dict、str虽然是Iterable，却不是Iterator
+
+变成Iterator：iter('abc')
+
+Iterator对象表示的是一个数据流。可以把这个数据流看做是一个有序序列，
+但我们却不能提前知道序列的长度，只能不断通过next()函数实现按需计算下一个数据
+Iterator表示一个惰性计算的序列
+
+Iterator甚至可以表示一个无限大的数据流，例如全体自然数。而使用list是永远不可能存储全体自然数的。
+
+Python的for循环本质上就是通过不断调用next()函数实现的
+
+it = iter([1, 2, 3, 4, 5])
+while True:
+    try:
+        # 获得下一个值:
+        x = next(it)
+    except StopIteration:
+        # 遇到StopIteration就退出循环
+        break
+
+##高阶函数map()和reduce()
+
+map()函数接收两个参数，一个是函数，一个是Iterable，map将传入的函数依次作用到序列的每个元素，
+并把结果作为新的Iterator返回
+
+Iterator是惰性序列，因此通过list()函数让它把整个序列都计算出来并返回一个list
+
+list(map(str, [1, 2, 3, 4, 5, 6, 7, 8, 9]))
+['1', '2', '3', '4', '5', '6', '7', '8', '9']
+
+reduce接收两个参数，把一个函数(这个函数必须接收两个参数)作用在一个序列[x1, x2, x3, ...]上，
+结果继续和序列的下一个元素做累积计算
+
+from functools import reduce
+
+求和函数sum()可以接受一个list并求和
+
+
+#str转换为int的函数 功能和int()一样
+DIGITS = {'0': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9}
+def char2num(s):
+    return DIGITS[s]
+def str2int(s):
+    return reduce(lambda x, y: x * 10 + y, map(char2num, s))
+
+str.capitalize('uRRH') 首字母大写
+'SJIISOA'.lower()/.upper()
+name[0].upper() + name[1:].lower()#首字母大写
+
+
+str[::-1] 反向str
+#str to float
+return reduce(lambda x,y:x*10+y,map(int,s.split(".")[0])) 
++(reduce(lambda x,y:x/10+y,map(int,s.split(".")[1][::-1])))/10
+
+
+
+filter()也接收一个函数和一个序列。filter()把传入的函数依次作用于每个元素，
+然后根据返回值是True还是False决定保留还是丢弃该元素
+
+
+filter()函数返回的是一个Iterator，也就是一个惰性序列。需要用lst()获得所有结果并返回list
+
+计算素数的一个方法是埃氏筛法
+从3开始的奇数
+def _odd_iter():
+    n = 1
+    while True:
+        n = n + 2
+        yield n
+
+def _not_divisible(n):
+    return lambda x: x % n > 0
+
+def primes():
+    yield 2
+    it = _odd_iter() # 初始序列
+    while True:
+        n = next(it) # 返回序列的第一个数
+        yield n
+        it = filter(_not_divisible(n), it) # 构造新序列
+
+Iterator是惰性计算的序列
+可以用Python表示“全体自然数”，“全体素数”这样的序列
+
+筛选回数
+def is_palindrome(n): 
+    sn = str(n)
+    return sn[::] == sn[::-1]
+
+output = filter(is_palindrome,range(1,1000))
+
+
+##排序
+
+sorted()函数就可以对list进行排序
+
+sorted()函数也是一个高阶函数，它还可以接收一个key函数来实现自定义的排序
+sorted([36, 5, -12, 9, -21], key=abs)
+key指定的函数将作用于list的每一个元素上，并根据key函数返回的结果进行排序
+
+
+默认情况下，对字符串排序，是按照ASCII的大小比较的，
+由于'Z' < 'a'，结果，大写字母Z会排在小写字母a的前面
+
+忽略大小写排序str
+sorted(['bob', 'about', 'Zoo', 'Credit'], key=str.lower)
+
+忽略大小写，反向排序
+sorted(['bob', 'about', 'Zoo', 'Credit'], key=str.lower, reverse=True)
+
+成绩和名称排序
+L = [('Bob', 75), ('Adam', 92), ('Bart', 66), ('Lisa', 88)]
+L2 = sorted(L,key=lambda L0 : L0[0])
+成绩从高到低
+L2 = sorted(L,key=lambda L1 : -L1[1])
+
+
+
+##函数作为返回值
+我们在函数中又定义了函数，并且，内部函数可以引用外部函数的参数和局部变量，
+当外部函数返回内部函数时，相关参数和变量都保存在返回的函数中
+闭包（Closure）
+
+
+返回函数不要引用任何循环变量，或者后续会发生变化的变量
+
+如果一定要引用循环变量就再创建一个函数，用该函数的参数绑定循环变量当前的值
+
 
 #利用闭包返回一个计数器函数，每次调用它返回递增整数：
 def createCounter():
@@ -494,6 +680,55 @@ def createCounter():
     def fext():
         return next(x)
     return fext
+
+
+
+
+
+##匿名函数
+lambda x: x * x
+
+
+## 装饰器
+
+函数也是一个对象，而且函数对象可以被赋值给变量，所以，通过变量也能调用该函数
+
+函数对象有一个__name__属性，可以拿到函数的名字
+
+
+def now():
+	print('2015-3-25')
+f = now
+f()
+
+
+在代码运行期间动态增加功能的方式，称之为“装饰器”（Decorator）
+
+decorator就是一个返回函数的高阶函数
+
+
+def log(func):
+    def wrapper(*args, **kw):
+        print('call %s():' % func.__name__)
+        return func(*args, **kw)
+    return wrapper
+
+@log
+def now():
+    print('2015-3-25')
+
+
+@log放到now()函数的定义处，相当于执行了语句：
+now = log(now)
+
+log()是一个decorator
+
+调用now()将执行新函数，即在log()函数中返回的wrapper()函数
+
+wrapper()函数的参数定义是(*args, **kw)，因此，wrapper()函数可以接受任意参数的调用
+
+
+
 
 
 
@@ -511,6 +746,10 @@ def log(text):
 def now():
     print('2019-11-25')
 
+3层嵌套
+now = log('execute')(now)
+
+
 
 
 import functools
@@ -519,7 +758,7 @@ import time
 
 # 设计一个decorator，它可作用于任何函数上，并打印该函数的执行时间
 def metric(fn):
-    @functools.wraps(fn)
+    @functools.wraps(fn) #原始函数的__name__等属性复制到wrapper()函数中
     def wrapper(*args,**kw):
         print('%s executed in %s ms' % (fn.__name__, time.time()))
         return fn(*args,**kw)
@@ -528,6 +767,9 @@ def metric(fn):
 @metric
 def now1():
     print('2019-11-25')
+
+
+
 
 
 #写一个decorator，能在函数调用的前后打印出'begin call'和'end call'的日志
@@ -556,6 +798,10 @@ def now2():
     print('2019-11-25')
 
 
+Python除了能支持OOP的decorator外，
+直接从语法层次支持decorator。Python的decorator可以用函数实现，也可以用类实现
+
+
 
 ##偏函数
 import functools
@@ -582,3 +828,11 @@ max(*args)
 
 
 当函数的参数个数太多，需要简化时，使用functools.partial可以创建一个新的函数，这个新函数可以固定住原函数的部分参数
+
+
+
+##模块
+
+import sys
+
+
