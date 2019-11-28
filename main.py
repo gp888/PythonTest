@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #第一行是告诉Linux/OS X，windows会忽略
-（UTF-8 without BOM）
+#第二行(UTF-8 without BOM)
 
 ##Python是一种相当高级的语言
 
@@ -11,6 +11,9 @@
 #跨平台的
 #官方版本的解释器：CPython
 
+4个空格缩进
+
+CPU执行的是加减乘除的指令代码，以及各种条件判断和跳转指令
 
 age = input('please enter your name: ')
 age 是 str
@@ -35,7 +38,7 @@ and、or和not
 
 空值 None
 
-任何数据都看成一个对象
+任何数据都是对象
 
 变量本身类型不固定的语言称之为动态语言
 
@@ -221,6 +224,8 @@ a
 
 
 ##函数
+python 内置函数
+https://docs.python.org/3/library/functions.html
 
 help(abs)查看abs函数的帮助信息
 abs(-100)
@@ -835,4 +840,106 @@ max(*args)
 
 import sys
 
+' a test module '
+任何模块代码的第一个字符串都被视为模块的文档注释
 
+__author__ = 'gp'
+
+变量sys指向sys模块
+args = sys.argv #[main.py]
+sys模块有一个argv变量，用list存储了命令行的所有参数。argv至少有一个元素，
+因为第一个参数永远是该.py文件的名称
+
+运行python3 hello.py Michael获得的sys.argv就是['hello.py', 'Michael] 
+
+
+if __name__=='__main__':
+    test()
+在命令行运行模块文件时，Python解释器把一个特殊变量__name__置为__main__，
+而如果在其他地方导入该hello模块时，if判断将失败，因此，
+这种if测试可以让一个模块通过命令行运行时执行一些额外的代码，最常见的就是运行测试。
+
+__name__
+当模块是被调用执行的，取值为模块的名字；当模块是直接执行的，则该变量取值为：__main__
+
+
+##一个模块
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+' a test module '
+
+__author__ = 'Michael Liao'
+
+import sys
+
+def test():
+    args = sys.argv
+    if len(args)==1:
+        print('Hello, world!')
+    elif len(args)==2:
+        print('Hello, %s!' % args[1])
+    else:
+        print('Too many arguments!')
+
+if __name__=='__main__':
+    test()
+
+
+
+import hello
+运行：hello.test()
+
+
+正常的函数和变量名是公开的（public），可以被直接引用
+
+__xxx__这样的变量是特殊变量，可以被直接引用，但是有特殊用途，
+比如__author__，__name__
+模块定义的文档注释也可以用特殊变量__doc__访问
+_xxx和__xxx这样的函数或变量就是非公开的（private）
+
+Python并没有一种方法可以完全限制访问private函数或变量
+
+外部不需要引用的函数全部定义成private
+
+
+
+安装第三方模块，是通过包管理工具pip完成的
+
+安装时勾选了pip和Add python.exe to Path
+
+
+
+第三方库都会在Python官方的pypi.python.org网站注册
+
+Python Imaging Library(PIL)非常强大的处理图像的工具库
+基于PIL的Pillow支持python3
+pip install Pillow
+
+MySQL驱动程序，Web框架Flask,科学计算Numpy
+
+Anaconda，是一个基于Python的数据处理和科学计算平台
+内置了许多非常有用的第三方库
+
+模块搜索路径
+
+加载一个模块时，Python会在指定的路径下搜索对应的.py文件
+sys.path
+添加搜索目录，运行时修改
+sys.path.append('/Users/michael/my_py_scripts')
+
+
+
+
+## 类
+
+class Student(object):
+
+	 def __init__(self, name, score):
+        self.name = name
+        self.score = score
+    
+bart = Student()    	
+
+
+__init__方法的第一个参数永远是self，表示创建的实例本身
