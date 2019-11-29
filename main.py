@@ -853,6 +853,7 @@ sys模块有一个argv变量，用list存储了命令行的所有参数。argv�
 运行python3 hello.py Michael获得的sys.argv就是['hello.py', 'Michael] 
 
 
+
 if __name__=='__main__':
     test()
 在命令行运行模块文件时，Python解释器把一个特殊变量__name__置为__main__，
@@ -933,13 +934,155 @@ sys.path.append('/Users/michael/my_py_scripts')
 
 ## 类
 
-class Student(object):
+class Student(object):#object)，表示该类是从哪个类继承下来的
 
-	 def __init__(self, name, score):
-        self.name = name
-        self.score = score
-    
-bart = Student()    	
+	def __init__(self, name, score):#特殊方法，第一个参数永远是实例变量self
+        self.__name = name
+        self.__score = score
+
+    def print_score(self):#第一个参数是self
+        print('%s: %s' % (self.__name, self.__score)) 
+        
+    def get_grade(self):
+        if self.__score >= 90:
+            return 'A'
+        elif self.__score >= 60:
+            return 'B'
+        else:
+            return 'C'
+
+    def get_name(self):
+        return self.__name
+
+    def get_score(self):
+        return self.__score
+
+    def set_score(self, score):
+        if 0 <= score <= 100:
+            self.__score = score
+        else:
+            raise ValueError('bad score')
+
+
+
+bart = Student()
+bart.name = 'Bart Simpson'
 
 
 __init__方法的第一个参数永远是self，表示创建的实例本身
+
+#绑定任何数据
+bart = Student('Bart Simpson', 59)
+bart.age = 8
+
+
+
+
+实例的变量名如果以__开头，就变成了一个私有变量（private），只有内部可以访问
+Python解释器对外把__name变量改成了_Student__name，通过_Student__name来访问__name变量
+
+
+__xxx__，是特殊变量，特殊变量是可以直接访问的
+比如_name,请把我视为私有变量，不要随便访问
+
+多态 开闭原则，对扩招开放，对修改关闭
+
+Animal - run() Dog - run() Cat - run()
+
+参数为Animal的函数，Python这样的动态语言来说，
+不一定需要传入Animal类型。我们只需要保证传入的对象有一个run()方法就可以了
+
+
+一个对象只要“看起来像鸭子，走起路来像鸭子”，那它就可以被看做是鸭子
+
+file-like object
+真正的文件对象，它有一个read()方法，返回其内容
+python 中只要有read()方法，都被视为“file-like object“
+
+
+对象类型：type(对象)
+type(None) <class 'NoneType'>
+type(abs)
+
+
+import types
+type(fn)==types.FunctionType
+type(abs)==types.BuiltinFunctionType
+type(lambda x: x)==types.LambdaType
+type((x for x in range(10)))==types.GeneratorType
+能用type()判断的基本类型也可以用isinstance()判断
+isinstance(b'a', bytes)
+
+是否是某些类型中的一种
+isinstance([1, 2, 3], (list, tuple))
+优先使用isinstance()判断类型
+
+
+获得一个对象的所有属性和方法，可以使用dir()函数
+返回一个包含字符串的list
+
+dir('ABC')
+
+
+调用len()函数试图获取一个对象的长度，实际上，在len()函数内部，
+它自动去调用该对象的__len__()方法
+
+len('ABC') == 'ABC'.__len__()
+
+
+
+getattr()、setattr()以及hasattr()
+
+setattr(obj, 'y', 19) # 设置一个属性'y'
+getattr(obj, 'z', 404) # 获取属性'z'，如果不存在，返回默认值404
+hasattr(obj, 'power') # 有方法'power'吗？
+
+
+
+Python这类动态语言中，根据鸭子类型，有read()方法，不代表该fp对象就是一个文件流，
+它也可能是网络流，也可能是内存中的一个字节流，但只要read()方法返回的是有效的图像数据，就不影响读取图像的功能
+
+
+
+class Student(object):
+    name = 'Student'
+这个属性虽然归类所有，但类的所有实例都可以访问到
+
+
+实例属性优先级比类属性高 
+del s.name # 删除实例的name属性
+不要对实例属性和类属性使用相同的名字，因为相同名称的实例属性将屏蔽掉类属性
+
+
+from types import MethodType
+
+def set_age(self, age): # 定义一个函数作为实例方法
+    self.age = age
+
+s.set_age = MethodType(set_age, s) # 给实例绑定一个方法
+
+Student.set_score = set_score#给class 绑定一个方法
+
+__slots__
+
+只允许对Student实例添加name和age属性
+class Student(object):
+    __slots__ = ('name', 'age') # 用tuple定义允许绑定的属性名称
+
+__slots__定义的属性仅对当前类实例起作用，对继承的子类是不起作用的    
+
+
+not isinstance(value, int)
+ if value < 0 or value > 100:
+
+@property装饰器  把一个方法变成属性调用
+
+把一个getter方法变成属性
+另一个装饰器@score.setter
+
+只定义getter方法，不定义setter方法就是一个只读属性
+
+##多继承 MixIn
+
+多重继承来组合多个MixIn的功能，而不是设计多层次的复杂的继承关系
+不需要复杂而庞大的继承链，只要选择组合不同的类的功能
