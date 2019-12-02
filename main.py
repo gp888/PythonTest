@@ -1103,7 +1103,525 @@ print(Student('Michael'))
 Student object (name: Michael)
 
 
-直接显示变量调用的不是__str__()，而是__repr__()
+直接调用变量，调用的不是__str__()，而是__repr__()
 
 
 __str__()返回用户看到的字符串，而__repr__()返回程序开发者看到的字符串，也就是说，__repr__()是为调试服务的
+
+class Student(object):
+    def __init__(self, name):
+        self.name = name
+    def __str__(self):
+        return 'Student object (name=%s)' % self.name
+    __repr__ = __str__ #__str__()和__repr__()代码都是一样的
+
+
+__iter__
+
+如果一个类想被用于for ... in循环，类似list或tuple那样，就必须实现一个__iter__()方法，
+该方法返回一个迭代对象，不断调用该迭代对象的__next__()
+
+
+class Fib(object):
+    def __init__(self):
+        self.a, self.b = 0, 1 # 初始化两个计数器a，b
+
+    def __iter__(self):
+        return self # 实例本身就是迭代对象，故返回自己
+
+    def __next__(self):
+        self.a, self.b = self.b, self.a + self.b # 计算下一个值
+        if self.a > 100000: # 退出循环的条件
+            raise StopIteration()
+        return self.a # 返回下一个值
+
+
+__getitem__ 像list那样按照下标取元素
+
+class Fib(object):
+    def __getitem__(self, n):
+        a, b = 1, 1
+        for x in range(n):
+            a, b = b, a + b
+        return a
+
+f = Fib()
+f[5]        
+
+
+像list那样切片
+class Fib(object):
+    def __getitem__(self, n):
+        if isinstance(n, int): # n是索引
+            a, b = 1, 1
+            for x in range(n):
+                a, b = b, a + b
+            return a
+        if isinstance(n, slice): # n是切片
+            start = n.start
+            stop = n.stop
+            if start is None:
+                start = 0
+            a, b = 1, 1
+            L = []
+            for x in range(stop):
+                if x >= start:
+                    L.append(a)
+                a, b = b, a + b
+            return L
+
+f = Fib()
+f[0:5]    
+
+没有对step、负数参数作处理      
+
+
+如果把对象看成dict，__getitem__()的参数也可能是一个可以作key的object，例如str  
+
+__setitem__()，把对象视作list或dict来对集合赋值。最后
+__delitem__()，用于删除某个元素。
+
+
+自己定义的类表现得和Python自带的list、tuple、dict没什么区别
+动态语言的“鸭子类型”，不需要强制继承某个接口
+
+
+__getattr__
+
+动态返回一个属性
+class Student(object):
+
+    def __init__(self):
+        self.name = 'Michael'
+
+    def __getattr__(self, attr):
+        if attr=='score':
+            return 99
+
+当调用不存在的属性时，比如score
+(只有在没有找到属性的情况下)会试图调用__getattr__(self, 'score')来尝试获得属性
+
+返回函数
+def __getattr__(self, attr):
+        if attr=='age':
+            return lambda: 25       
+s.age()            
+
+
+__getattr__默认返回就是None
+def __getattr__(self, attr):
+        if attr=='age':
+            return lambda: 25
+        raise AttributeError('\'Student\' object has no attribute \'%s\'' % attr)
+
+
+
+可以把一个类的所有属性和方法调用全部动态化处理了
+
+利用完全动态的__getattr__，我们可以写出一个链式调用
+
+class Chain(object):
+
+    def __init__(self, path=''):
+        self._path = path
+
+    def __getattr__(self, path):
+        return Chain('%s/%s' % (self._path, path))
+
+    def __str__(self):
+        return self._path
+
+    __repr__ = __str__
+
+
+Chain().status.user.timeline.list
+'/status/user/timeline/list'
+
+__call__ 对实例进行调用
+一般是instance.method()
+
+class Student(object):
+    def __init__(self, name):
+        self.name = name
+
+    def __call__(self):
+        print('My name is %s.' % self.name)
+
+
+s = Student('Michael')
+s() # self参数不要传入
+My name is Michael.   
+
+对实例进行直接调用就好比对一个函数进行调用一样   
+
+
+完全可以把对象看成函数，把函数看成对象  
+
+能被调用的对象就是一个Callable对象
+callable(Student()) #带有__call__()的类实例
+callable(max) #函数
+
+枚举
+
+定义常量时 定义常量时 类型是int，并且仍然是变量
+
+from enum import Enum
+
+Month = Enum('Month', ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'))
+
+Month类型的枚举类
+
+Month.Jan来引用一个常量，
+
+枚举它的所有成员
+for name, member in Month.__members__.items():
+    print(name, '=>', member, ',', member.value)
+
+
+value属性则是自动赋给成员的int常量，默认从1开始计数。
+
+
+从Enum派生
+
+from enum import Enum, unique
+
+@unique #@unique装饰器可以保证没有重复值
+class Weekday(Enum): 
+    Sun = 0 # Sun的value被设定为0
+    Mon = 1
+    Tue = 2
+    Wed = 3
+    Thu = 4
+    Fri = 5
+    Sat = 6
+
+day1 = Weekday.Mon
+print(day1)
+Weekday.Mon
+
+Weekday['Tue']
+
+Weekday.Tue.value
+
+day1 == Weekday.Mon
+
+print(Weekday(1))
+Weekday.Mon
+
+day1 == Weekday(1)
+
+
+元类
+
+动态语言
+函数和类的定义，不是编译时定义的，而是运行时动态创建的
+
+hello.py模块:
+class Hello(object):
+    def hello(self, name='world'):
+        print('Hello, %s.' % name)
+
+当Python解释器载入hello模块时
+会执行该模块的所有语句
+动态创建出一个Hello的class对象
+
+from hello import Hello
+h = Hello()
+h.hello()
+Hello, world.
+print(type(Hello)) #Hello是一个class，它的类型就是type
+<class 'type'>
+print(type(h))
+<class 'hello.Hello'>
+
+class的定义是运行时动态创建的
+创建class的方法就是使用type()函数
+
+type()函数既可以返回一个对象的类型，又可以创建出新的类型
+
+可以通过type()函数创建出Hello类，而无需通过class Hello(object)...的定义
+
+def fn(self, name='world'): # 先定义函数
+    print('Hello, %s.' % name)
+
+Hello = type('Hello', (object,), dict(hello=fn)) # 创建Hello class
+
+创建一个class对象，type()函数依次传入3个参数：
+
+class的名称
+继承的父类集合，支持多重继承
+class的方法名称与函数绑定，这里我们把函数fn绑定到方法名hello上
+
+
+动态语言本身支持运行期动态创建类
+
+要在静态语言运行期创建类，必须构造源代码字符串再调用编译器，
+本质上都是动态编译，复杂
+
+
+metaclass
+
+先定义metaclass，就可以创建类，最后创建实例
+
+metaclass允许你创建类或者修改类。换句话说，你可以把类看成是metaclass创建出来的“实例”
+
+正常情况下，不会碰到需要使用metaclass的情况
+
+可以给我们自定义的MyList增加一个add方法：
+# metaclass是类的模板，所以必须从`type`类型派生：
+class ListMetaclass(type):
+    def __new__(cls, name, bases, attrs):
+        attrs['add'] = lambda self, value: self.append(value)
+        return type.__new__(cls, name, bases, attrs)
+
+需要通过metaclass修改类定义的。ORM就是一个典型的例子
+
+ORM全称“Object Relational Mapping”，即对象-关系映射，
+就是把关系数据库的一行映射为一个对象
+
+
+ORM框架，所有的类都只能动态定义
+
+真叫人头大
+
+metaclass可以改变类创建时的行为
+
+错误处理
+
+操作系统中
+打开文件的函数open()，成功时返回文件描述符（就是一个整数），出错时返回-1
+
+try:
+    print('try...')
+    r = 10 / 0
+    print('result:', r)
+except ZeroDivisionError as e:
+    print('except:', e)
+except ValueError as e:
+    print('ValueError:', e)
+    logging.exception(e)
+else:
+    print('no error!')     
+finally:
+    print('finally...')
+print('END')
+
+所有的错误类型都继承自BaseException
+
+UnicodeError是ValueError的子类
+
+TypeError
+
+Error的继承关系
+https://docs.python.org/3/library/exceptions.html#exception-hierarchy
+
+
+如果错误没有被捕获，它就会一直往上抛，最后被Python解释器捕获
+
+import logging
+
+错误并不是凭空产生的，而是有意创建并抛出的
+
+class FooError(ValueError):
+    pass
+
+raise FooError('invalid value: %s' % s)
+
+raise语句如果不带参数，就会把当前错误原样抛出
+
+
+转化成另一种
+try:
+    10 / 0
+except ZeroDivisionError:
+    raise ValueError('input error!')
+
+s 78 7.8
+
+def str2num(s):
+    return eval(s)    
+
+
+凡是用print()来辅助查看的地方，都可以用断言（assert）来替代    
+
+assert n != 0, 'n is zero!' #表达式n != 0应该是True，否则 出错
+
+断言失败 AssertionError: n is zero!
+
+启动Python解释器时可以用-O参数来关闭assert
+
+logging.info('n = %d' % n)
+
+调试器pdb
+python -m pdb err.py
+
+bdb输入l(小写L) 查看代码， n单步执行
+输入命令p 变量名来查看变量
+q结束调试
+
+断点
+pdb.set_trace()
+
+import pdb
+
+程序会自动在pdb.set_trace()暂停并进入pdb调试环境，
+p查看变量，c继续运行
+
+单元测试：unittest模块
+
+
+打开一个文件对象
+f = open('/Users/michael/test.txt', 'r') #r表示读
+
+f.read() 读取全部内容到内存
+
+文件使用完毕后必须关闭，因为文件对象会占用操作系统的资源
+f.close()
+
+
+try:
+    f = open('/path/to/file', 'r')
+    print(f.read())
+finally:
+    if f:
+        f.close()
+
+with语句来会帮我们调用close()方法
+with open('/path/to/file', 'r') as f:
+    print(f.read())
+
+read(size)方法，每次最多读取size个字节的内容
+readline每次读取一行
+readlines()一次读取所有内容并按行返回list
+
+配置文件，调用readlines()最方便
+
+for line in f.readlines():
+    print(line.strip()) # 把末尾的'\n'删掉
+
+有read()方法的对象，file-like Object 内存的字节流，网络流，自定义流
+StringIO就是在内存中创建的file-like Object，常用作临时缓冲
+
+二进制文件
+f = open('/Users/michael/test.jpg', 'rb')#图片、视频，用'rb'模式打
+f.read()
+b'\xff\xd8\xff\xe1\x00\x18Exif\x00\x00...' # 十六进制表示的字节
+
+读取非UTF-8编码的文本文件
+f = open('/Users/michael/gbk.txt', 'r', encoding='gbk')
+f.read()
+
+忽略UnicodeDecodeError
+f = open('/Users/michael/gbk.txt', 'r', encoding='gbk', errors='ignore')
+
+
+'w'或者'wb'表示写文件
+
+f = open('/Users/michael/test.txt', 'w')
+f.write('Hello, world!') 
+f.close()
+
+
+写文件时，不会立刻把数据写入磁盘，先放到内存缓存起来，空闲时写入
+
+调用close()方法时 才保证把没有写入的数据全部写入磁盘
+
+保险
+with open('/Users/michael/test.txt', 'w') as f:
+    f.write('Hello, world!')
+
+以'w'模式写入文件时，如果文件已存在，会直接覆盖（相当于删掉后新写入一个文件）
+'a'以追加模式写入
+
+
+StringIO 内存中读写数据(str)
+
+
+
+from io import StringIO
+f = StringIO()
+f.write('hello')
+5
+f.write(' ')
+1
+f.write('world!')
+6
+print(f.getvalue())
+hello world!
+
+
+
+
+from io import StringIO
+f = StringIO('Hello!\nHi!\nGoodbye!')
+while True:
+    s = f.readline()
+    if s == '':
+        break
+    print(s.strip())
+
+
+要操作二进制数据，就需要使用BytesIO    
+
+内存中读写bytes
+
+from io import BytesIO
+f = BytesIO()
+f.write('中文'.encode('utf-8'))
+6
+print(f.getvalue())
+b'\xe4\xb8\xad\xe6\x96\x87'
+
+
+操作文件和目录
+
+操作系统提供的各种比如dir、cp等命令
+
+内置的os模块也可以直接调用操作系统提供的接口函数
+
+import os
+os.name # 操作系统类型
+'posix' #Linux、Unix或Mac OS X
+nt #Windows
+
+os.environ#环境变量
+
+os.environ.get('key')
+
+os.environ.get('PATH')
+os.environ.get('x', 'default')
+
+os.path模块
+
+os.path.abspath('.')#当前目录绝对路径
+
+os.path.join('/Users/michael', 'testdir')#创建一个新目录，并打印
+
+
+os.mkdir('/Users/michael/testdir')#创建一个目录
+os.rmdir('/Users/michael/testdir')#删除一个目录
+
+os.path.join()#两个路径合成一个，真确处理路径分隔符
+
+os.path.split()#
+
+os.path.split('/Users/michael/testdir/file.txt')
+('/Users/michael/testdir', 'file.txt')
+
+#得到扩展名
+os.path.splitext('/path/to/file.txt')
+('/path/to/file', '.txt')
+
+os.rename('test.txt', 'test.py')#重命名
+os.remove('test.py')#删除
+
+
+shutil模块(os模块的补充)提供了copyfile()的函数
+
+列出目录
+[x for x in os.listdir('.') if os.path.isdir(x)]
+
+列出.py文件
+[x for x in os.listdir('.') if os.path.isfile(x) and os.path.splitext(x)[1]=='.py']
+
+
