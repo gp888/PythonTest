@@ -1086,3 +1086,24 @@ not isinstance(value, int)
 
 多重继承来组合多个MixIn的功能，而不是设计多层次的复杂的继承关系
 不需要复杂而庞大的继承链，只要选择组合不同的类的功能
+
+MixIn设计
+
+
+__str__：打印对象返回一个字符串
+
+
+class Student(object):
+		def __init__(self, name):
+			self.name = name
+		def __str__(self):
+			return 'Student object (name: %s)' % self.name
+
+print(Student('Michael'))
+Student object (name: Michael)
+
+
+直接显示变量调用的不是__str__()，而是__repr__()
+
+
+__str__()返回用户看到的字符串，而__repr__()返回程序开发者看到的字符串，也就是说，__repr__()是为调试服务的
