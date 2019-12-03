@@ -1605,6 +1605,7 @@ os.path.join()#两个路径合成一个，真确处理路径分隔符
 
 os.path.split()#
 
+后一部分是最后级别的目录或文件名：
 os.path.split('/Users/michael/testdir/file.txt')
 ('/Users/michael/testdir', 'file.txt')
 
@@ -1623,5 +1624,264 @@ shutil模块(os模块的补充)提供了copyfile()的函数
 
 列出.py文件
 [x for x in os.listdir('.') if os.path.isfile(x) and os.path.splitext(x)[1]=='.py']
+
+
+
+pickling unpickling
+
+import pickle
+
+d = dict(name='Bob', age=20, score=88)
+pickle.dumps(d)  #把任意对象序列化成一个bytes,就可以写入文件了
+
+pickle.dump() #把对象序列化后写入一个file-like Objec
+f = open('dump.txt', 'wb')
+pickle.dump(d, f)
+f.close()
+
+
+把内容读到一个bytes,用pickle.loads()方法反序列化出对象
+
+可以直接用pickle.load()方法从一个file-like Object中直接反序列化出对象
+
+f = open('dump.txt', 'rb')
+d = pickle.load(f)
+f.close()
+d
+{'age': 20, 'score': 88, 'name': 'Bob'}
+
+只能用Pickle保存那些不重要的数据
+
+
+import json
+d = dict(name='Bob', age=20, score=88)
+json.dumps(d)
+'{"age": 20, "score": 88, "name": "Bob"}'
+
+
+dump()方法可以直接把JSON写入一个file-like Object
+
+
+json_str = '{"age": 20, "score": 88, "name": "Bob"}'
+json.loads(json_str)
+{'age': 20, 'score': 88, 'name': 'Bob'}
+
+
+load()#从file-like Object中读取字符串并反序列化
+
+
+JSON标准规定JSON编码是UTF-8
+
+
+def student2dict(std):
+    return {
+        'name': std.name,
+        'age': std.age,
+        'score': std.score
+    }
+
+print(json.dumps(s, default=student2dict))    
+
+
+print(json.dumps(s, default=lambda obj: obj.__dict__))
+
+def dict2student(d):
+    return Student(d['name'], d['age'], d['score'])
+
+json_str = '{"age": 20, "score": 88, "name": "Bob"}'
+print(json.loads(json_str, object_hook=dict2student))
+
+
+#多进程
+
+Unix/Linux操作系统提供了一个fork()系统调用
+
+操作系统自动把当前进程（称为父进程）复制了一份（称为子进程），然后，分别在父进程和子进程内返回。
+子进程永远返回0，而父进程返回子进程的ID
+
+父进程要记下每个子进程的ID，而子进程只需要调用getppid()就可以拿到父进程的ID。
+
+os模块封装了常见的系统调用
+
+import os
+
+print('Process (%s) start...' % os.getpid())
+
+Mac系统是基于BSD（Unix的一种）内核
+
+有了fork调用，一个进程在接到新任务时就可以复制出一个子进程来处理新任务，常见的Apache服务器就是由父进程监听端口，
+每当有新的http请求时，就fork出子进程来处理新的http请求
+
+Windows没有fork调用
+multiprocessing模块就是跨平台版本的多进程模块
+
+
+from multiprocessing import Process
+import os
+
+# 子进程要执行的代码
+def run_proc(name):
+    print('Run child process %s (%s)...' % (name, os.getpid()))
+
+if __name__=='__main__':
+    print('Parent process %s.' % os.getpid())
+    p = Process(target=run_proc, args=('test',)) #传入一个执行函数和函数的参数
+    print('Child process will start.')
+    p.start()
+    p.join() #等待子进程结束后再继续往下运行，通常用于进程间的同步
+    print('Child process end.')
+
+
+Pool
+进程池的方式批量创建子进程
+Pool的默认大小是CPU的核数
+
+
+subprocess模块可以让我们启动一个子进程， 控制其输入和输出
+
+多任务可以由多进程完成
+
+
+##多线程
+
+_thread是低级模块，threading是高级模块
+
+传入一个函数并创建Thread实例
+t = threading.Thread(target=loop, name='LoopThread')
+t.start()
+t.join()
+
+
+MainThread
+current_thread()当前线程实例
+
+高级语言的一条语句在CPU执行时是若干条语句
+threading.Lock()锁
+
+lock.acquire()
+
+lock.release()
+
+锁的好处就是确保了某段关键代码只能由一个线程从头到尾完整地执行
+
+有一个GIL锁：Global Interpreter Lock，任何Python线程执行前，必须先获得GIL锁
+
+不指望多线程利用多核
+多线程的并发在Python中就是一个美丽的梦
+
+
+
+##ThreadLocal
+
+线程使用局部变量
+
+local_school = threading.local()
+
+每个Thread对它都可以读写student属性
+
+
+ThreadLocal最常用的地方就是为每个线程绑定一个数据库连接，HTTP请求，用户身份信息等
+
+一个ThreadLocal变量虽然是全局变量，但每个线程都只能读写自己线程的独立副本，互不干扰
+
+
+计算密集型任务同时进行的数量应当等于CPU的核心数
+Python这样的脚本语言运行效率很低，完全不适合计算密集型任务。对于计算密集型任务，最好用C语言编写
+
+
+涉及到网络、磁盘IO的任务都是IO密集型任务
+常见的大部分任务都是IO密集型任务，比如Web应用
+
+
+内建模块
+
+datetime collections 
+
+base64 用64个字符来表示任意二进制数据
+
+struct #处理字节
+
+hashlib #摘要算法 称哈希算法、散列算法。它通过一个函数，
+把任意长度的数据转换为一个长度固定的数据串（通常用16进制的字符串表示）
+
+Hmac
+
+itertools用于操作迭代对象的函数
+
+contextlib把任意对象变为上下文对象，并支持with语句
+
+urllib提供了一系列用于操作URL的功能。
+
+xml
+
+HTMLParser 爬虫第一步把目标网站的页面抓下来，第二步就是解析该HTML页面
+
+
+##三方模块
+
+Pillow Python Imaging Library 图像处理
+
+
+requests 处理URL资源特别方便
+
+chardet 对于未知编码的bytes，要把它转换成str 用它来检测编码
+
+psutil 获取系统信息 process and system utilities 跨平台
+
+Linux下，有许多系统命令可以让我们时刻监控系统运行的状态，如ps，top，free
+Python可以通过subprocess模块调用并获取结果
+
+
+virtualenv创建一套“隔离”的Python运行环境
+每个应用可能需要各自拥有一套“独立”的Python运行环境
+
+Turtle Graphics
+
+https://docs.python.org/3.3/library/turtle.html#turtle-methods
+
+
+网络编程
+
+TCP/IP udp
+
+电子邮件
+smtp发邮件
+pop3收邮件
+
+数据库
+SQLite
+MySQL
+SQLAlchemy
+
+web开发
+Django
+
+WSGI框架
+
+
+异步io
+协程
+asyncio
+async/await
+aiohttp
+
+
+实战
+webApp
+
+FAQ
+
+获取当前路径
+print(os.path.abspath('.'))
+
+
+当前模块文件名
+print(__file__)
+
+
+
+print(sys.executable)
+
+E:\Python38\python.exe
 
 
