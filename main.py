@@ -15,6 +15,10 @@
 
 CPU执行的是加减乘除的指令代码，以及各种条件判断和跳转指令
 
+
+dir(obj)            # 简单的列出对象obj所包含的方法名称，返回一个字符串列表
+help(obj.func)      # 查询obj.func的具体介绍和用法
+
 age = input('please enter your name: ')
 age 是 str
 int(age) 转换 int
@@ -595,6 +599,8 @@ name[0].upper() + name[1:].lower()#首字母大写
 
 
 str[::-1] 反向str
+str[1::-1] 从1开始倒着数
+
 #str to float
 return reduce(lambda x,y:x*10+y,map(int,s.split(".")[0])) 
 +(reduce(lambda x,y:x/10+y,map(int,s.split(".")[1][::-1])))/10
@@ -1934,4 +1940,29 @@ print(sys.executable)
 
 E:\Python38\python.exe
 
+
+
+
+十大语法
+
+for .. else
+
+for i in range(4):
+	if i > 2:
+		print(i)
+		break #跳过else
+else:
+	print('一定执行')
+
+三元
+打球去吧 if 不下雨 else 去自习室
+
+y=1
+x=1 if y<0 else -1
+
+
+with as
+
+with open(r"D:\CSDN\Column\temp\mpmap.py", 'r') as fp:
+    contents = fp.readlines()
 
